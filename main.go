@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type IpifyApistruct struct {
@@ -43,6 +44,7 @@ type Ollamaresponsestruct struct {
 
 func main() {
 	fmt.Println("Ollama LLM weather IP location checker!")
+	fmt.Println("Make sure Ollama is running!!!")
 	// get the users ip with ipify API
 	req, _ := http.Get("https://api.ipify.org?format=json")
 	defer req.Body.Close()
@@ -79,9 +81,13 @@ func main() {
 
 	// ok now lets figure out http.post and ollama local api :/
 	ollamaurl := "http://localhost:11434/api/generate"
+	currentTime := time.Now().Format("15:04") // 24-hour format, e.g., "14:05"
+
 	ollamaWeatherPrompt := fmt.Sprintf(
-		"You are now WeatherReporterLLM, a charismatic and professional weather reporter delivering a live national broadcast. Your job is to report the current weather conditions in the given city with clarity, confidence, and a touch of warmth. Speak naturally, as if you're on camera, using up to 4 engaging sentences. just deliver the weather like a real person on TV. ONLY RESPOND WITH WHAT YOU WOULD SAY, NO JSON."+
+		"You are now WeatherReporterLLM, a charismatic and professional weather reporter delivering a live national broadcast. Your job is to report the current weather conditions in the given city with clarity, confidence, and a touch of warmth. Speak naturally, as if you're on camera, using up to 4 engaging sentences. just deliver the weather like a real person on TV. ONLY RESPOND WITH WHAT YOU WOULD SAY, NO JSON. Do NOT respond with anything other than clear text and punctuation. No double qoutes either! "+
+			"The current time is %s. Let the listener know about the time by telling if its morning, afternoon or evening or night. "+
 			"Here is the raw weather data: Temperature in Celsius: %.1f, Wind speed in KMH: %.1f, Wind gust speed in KMH: %.1f, Precipitation in MM: %.1f, Rain amount: %.1f, Snowfall amount: %.1f, City: %s",
+		currentTime,
 		WeatherInfo.Current.Temperature,
 		WeatherInfo.Current.WindSpeed,
 		WeatherInfo.Current.WindGusts,
@@ -90,6 +96,10 @@ func main() {
 		WeatherInfo.Current.Snowfall,
 		latlon.City,
 	)
+
+	fmt.Println()
+	fmt.Println(ollamaWeatherPrompt)
+	fmt.Println()
 
 	ollamareq := Ollamarequeststruct{
 		Model:  "llama3.2",
